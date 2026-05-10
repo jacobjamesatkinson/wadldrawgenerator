@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabbycat draw helper</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Tabbycat draw helper</h1>
+    <p class="warn">
+      Static tool: API token is used in your browser only. If requests fail, see
+      <a href="CORS.md">CORS.md</a>. Serve this folder over HTTP (not file://) so ES modules load.
+    </p>
+
+    <fieldset>
+      <legend>Tabbycat server</legend>
+      <label><input type="radio" name="basePreset" value="prod" checked /> Production (draw.wadl.org)</label>
+      <label><input type="radio" name="basePreset" value="staging" /> Staging (Heroku)</label>
+      <label><input type="radio" name="basePreset" value="custom" /> Custom</label>
+      <input type="url" id="baseManual" placeholder="https://…" disabled />
+    </fieldset>
+
+    <fieldset>
+      <legend>Credentials & tournament</legend>
+      <label>API token <input type="password" id="token" autocomplete="off" size="40" /></label>
+      <label
+        >Tournament slug
+        <input type="text" id="slug" placeholder="sdcnov26" size="20" />
+      </label>
+      <span class="presets">
+        <button type="button" id="btnPresetNov">sdcnov26</button>
+        <button type="button" id="btnPresetJnr">sdcjnr26</button>
+        <button type="button" id="btnPresetSnr">sdcsnr26</button>
+      </span>
+      <label
+        >Round to post (1–5)
+        <input type="number" id="round" min="1" max="9" value="1" />
+      </label>
+      <p class="hint">
+        “Round to post” is the draw you are building. Standings and history use completed rounds
+        <strong>before</strong> that (for round 1, there is no prior data).
+      </p>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend>Action 1 — Load tournament from Tabbycat</legend>
+      <p class="hint">
+        One click loads everything needed for pairing: all teams, standings (through completed rounds before “Round to post”; pairing still uses team points from the API),
+        debate history for rematches / sides, and <strong>all Tabbycat rooms</strong> (<code>GET …/venues</code>) so each debate can be matched to a physical room when you generate and post.
+        The log lists each request underneath this action.
+      </p>
+      <button type="button" id="btnLoadTournament" class="primary-action">Load tournament from Tabbycat</button>
+    </fieldset>
+
+    <h2>Team roster</h2>
+    <p class="hint">
+      After Action 1 you see <strong>name</strong> and <strong>total speaks</strong> from <code>…/teams/standings/rounds</code> (through the round before “Round to post”). <strong>Venue</strong> and
+      <strong>timeslot</strong> stay blank until Action 2. Click a column header to sort (numbers vs text); click again to reverse.
+    </p>
+    <div id="teamRoster" class="roster-wrap"><p class="hint">Run Action 1 to load teams.</p></div>
+
+    <fieldset class="step">
+      <legend>Action 2 — Apply scheduling CSV</legend>
+      <p class="hint">
+        Paste CSV below <strong>or</strong> choose a file (pasted text wins if both are set).
+        Primary format: <code>team_name</code>, <code>score</code> (ignored — power pairing uses API only),
+        <code>venue</code>, <code>timeslot</code>. The <strong>venue</strong> column is your site / division label for grouping
+        (teams only meet others with the same venue + timeslot). For posting, it is matched to Tabbycat <strong>room</strong>
+        <code>name</code> or <code>display_name</code> from Action 1, <strong>ignoring case and extra spaces</strong>. One site label can map to
+        several Tabbycat rooms (e.g. names starting with <code>Hale </code> or <code>Hale-</code>); matching rooms are handed out in
+        Tabbycat <code>priority</code> order (then id) to each debate in the site, across all timeslots. Room
+        names no longer need to encode a clock time — the debate's <code>scheduled_at</code> carries the date +
+        timeslot on POST (set the date per venue in the draw table). Names must match
+        Tabbycat <strong>code name</strong> or <strong>short name</strong> (same as the roster column), then reference / long name. Alternative: <code>team_id</code> instead of
+        <code>team_name</code>. The Tabbycat <strong>BYE</strong> placeholder may appear as <code>team_name,BYE</code> (or its <code>team_id</code>) with <strong>empty venue and timeslot</strong> — it is not assigned to a pool.
+        Do not use <code>points</code> / <code>wins</code> columns (those would override the API rule).
+        Same-school detection uses the name before the number (e.g. <code>Hale 1</code> and <code>Hale 2</code> → Hale).
+        If no room matches, the debate still generates but posts without a venue until you align CSV labels with Tabbycat room names.
+        You can also list extra <strong>scheduling-exempt</strong> team IDs below (flex/bye placeholders that never need a venue×timeslot row).
+      </p>
+      <label for="csvPaste">Paste CSV</label>
+      <textarea id="csvPaste" rows="10" cols="80" placeholder="team_name,score,venue,timeslot&#10;Hale 1,220,Hale,7.15&#10;Shenton 5,190,Christchurch,6.15&#10;PMOD 2,210,Leeming,6.15"></textarea>
+      <p class="hint">Optional file (used if paste box is empty):</p>
+      <input type="file" id="csvFile" accept=".csv,text/csv" />
+      <p>
+        <button type="button" id="btnApplyCsv" class="primary-action">Apply scheduling CSV to teams</button>
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Scheduling-exempt team IDs (optional)</legend>
+      <label for="schedulingExemptTeamIds">
+        Comma-separated Tabbycat team ids — no CSV venue/timeslot row required (phantom / flex / bye placeholders)
+      </label>
+      <input type="text" id="schedulingExemptTeamIds" size="70" placeholder="e.g. 201, 202, 203, 204" />
+      <p class="hint">
+        Names matching BYE / bye-like labels are detected automatically on Action 1. Add any other placeholder team ids here. Re-run
+        <strong>Action 2</strong> after editing this field so the “missing scheduling” list updates.
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Exclusions (optional)</legend>
+      <label
+        >Excluded team IDs (comma-separated) — debates touching these IDs are skipped on Post
+        <input type="text" id="excludeTeams" size="60" placeholder="e.g. 12, 34" />
+      </label>
+    </fieldset>
+
+    <fieldset class="bye-section">
+      <legend>Bye history</legend>
+      <p class="hint">
+        Teams that already had a bye are deprioritised when the draw assigns the next bye. Action 1 loads bye history from Tabbycat pairings (including teams in an explicit bye debate), and for <strong>each</strong> loaded preliminary round that has debates, treats any team that never appears on aff/neg in that round’s pairings as having had a bye for that round (union across rounds). You can add more below if needed.
+      </p>
+      <div class="bye-block">
+        <h4 class="bye-sub">Detected from Tabbycat (Action 1)</h4>
+        <p id="apiByeHistorySummary" class="bye-summary" aria-live="polite"></p>
+        <ul id="apiByeHistoryList" class="bye-history-list" hidden></ul>
+        <p id="apiByeHistoryEmpty" class="hint">No bye debates in loaded history (e.g. round to post is 1, or no bye rounds yet).</p>
+      </div>
+      <div class="bye-block">
+        <h4 class="bye-sub">Also count as had a bye (search teams)</h4>
+        <p class="hint">Type a name or id, choose from suggestions (arrow keys), then <strong>Enter</strong> or <strong>Add</strong>. BYE placeholder cannot be added.</p>
+        <label for="byeTeamSearch" class="sr-only">Search team to mark prior bye</label>
+        <div class="bye-autocomplete-wrap">
+          <div class="bye-search-field">
+            <input type="text" id="byeTeamSearch" autocomplete="off" placeholder="Search team name or id…" />
+            <ul id="byeTeamSuggestions" class="ac-suggestions" hidden role="listbox"></ul>
+          </div>
+          <button type="button" id="byeTeamAddBtn" class="small">Add</button>
+        </div>
+        <p id="extraByeHistoryNote" class="hint" hidden>These teams are merged into bye avoidance when you generate the draw.</p>
+        <ul id="extraByeTeamList" class="bye-chip-list"></ul>
+      </div>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend>Action 3 — Generate draw</legend>
+      <p class="hint">
+        Runs only in your browser (no API). Needs Action 1 + Action 2 complete with no missing teams.         The draw table shows
+        <strong>total speaks</strong> under each side,         <strong>bracket headers</strong> (speaks tie bands / pull-ups), and <strong>clash pills</strong>
+        (short text; hover for detail). The table includes <strong>Room (Tabbycat)</strong> from the loaded venues list. Bracketing uses <strong>total speaks</strong> only (wins ignored). Row tint: rematch &gt; power/floater &gt; same institution. After generating, use the
+        <strong>dropdowns</strong> to change affirmative/negative
+        (or <strong>⇄</strong> to swap); posted rows are locked.
+      </p>
+      <button type="button" id="btnGen" class="primary-action">Generate draw</button>
+    </fieldset>
+
+    <fieldset class="step">
+      <legend>Action 4 — Publish or export</legend>
+      <p class="hint">Each button is one user action; posting may send several create requests for the debates you selected.</p>
+      <button type="button" id="btnPost">Post selected debates to Tabbycat</button>
+      <button type="button" id="btnExport">Download draw as CSV</button>
+      <button type="button" id="btnDestroy" class="danger">Clear entire draw for this round on Tabbycat</button>
+    </fieldset>
+
+    <h2>Teams missing CSV scheduling</h2>
+    <pre id="missingBox" class="box">(run Action 2 after Action 1)</pre>
+
+    <h2>Generated draw</h2>
+    <p class="hint">
+      Edit matchups with the Aff / Neg menus before posting. <strong>Room (Tabbycat)</strong> works like the bye search: type to filter and
+      choose from the suggestion list under the field (rooms are only those from Action 1 for the <strong>same tournament slug</strong>).
+      Clear the field to post without a room. Each venue block has a <strong>Debate date</strong> picker — set it once per venue and every
+      debate in that venue posts with <code>scheduled_at</code> = that date + its CSV timeslot (5.15 / 5:15 / 5.15pm → 17:15 local; 6.15 → 18:15; 7.15 → 19:15).
+      Leave the date blank to post without a scheduled start. Export CSV reflects your edits.
+    </p>
+    <div id="drawTable"></div>
+
+    <h2>Log</h2>
+    <p><button type="button" id="btnClearLog" class="small">Clear log</button></p>
+    <div id="log" class="box log"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

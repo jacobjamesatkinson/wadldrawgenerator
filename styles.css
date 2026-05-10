@@ -1,0 +1,583 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 1100px;
+  margin: 1rem auto;
+  padding: 0 0.75rem;
+  line-height: 1.4;
+  color: #111;
+  background: #f5f5f0;
+}
+
+h1 {
+  font-size: 1.35rem;
+  border-bottom: 2px solid #333;
+  padding-bottom: 0.25rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin-top: 1.25rem;
+}
+
+h3,
+h4 {
+  font-size: 1rem;
+  margin: 0.5rem 0 0.25rem;
+}
+
+fieldset {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #999;
+  background: #fff;
+}
+
+legend {
+  padding: 0 0.25rem;
+}
+
+label {
+  display: block;
+  margin: 0.35rem 0;
+}
+
+input[type="url"],
+input[type="text"],
+input[type="password"],
+input[type="number"] {
+  margin-left: 0.35rem;
+}
+
+textarea#csvPaste {
+  display: block;
+  width: 100%;
+  max-width: 52rem;
+  margin: 0.35rem 0 0.75rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  border: 1px solid #999;
+  box-sizing: border-box;
+}
+
+.presets button {
+  margin-right: 0.25rem;
+}
+
+.actions button {
+  margin: 0.25rem 0.35rem 0.25rem 0;
+  padding: 0.35rem 0.65rem;
+}
+
+button.small {
+  font-size: 0.85rem;
+  padding: 0.2rem 0.5rem;
+}
+
+button.primary-action {
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+}
+
+button.danger {
+  border-color: #a00;
+  color: #800;
+}
+
+.hint,
+.warn {
+  font-size: 0.88rem;
+  color: #333;
+}
+
+.warn {
+  background: #fff3cd;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+
+.box {
+  background: #fff;
+  border: 1px solid #999;
+  padding: 0.5rem;
+  min-height: 2rem;
+  font-size: 0.85rem;
+  overflow: auto;
+  max-height: 14rem;
+}
+
+.log {
+  font-family: ui-monospace, monospace;
+  max-height: 20rem;
+}
+
+.log-ok {
+  margin: 0.15rem 0;
+}
+
+.log-err {
+  margin: 0.15rem 0;
+  color: #800;
+}
+
+.venue-block {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  border: 1px solid #666;
+  background: #fff;
+}
+
+.slot-block {
+  margin: 0.5rem 0 0.75rem 0.5rem;
+  padding: 0.35rem;
+  border-left: 3px solid #888;
+}
+
+.slot-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.25rem;
+  flex-wrap: wrap;
+}
+
+.slot-heading .slot-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #111;
+}
+
+.slot-heading .slot-scheduled {
+  font-size: 0.85rem;
+  color: #146118;
+  font-weight: 500;
+}
+
+.slot-heading .slot-scheduled-warn {
+  font-size: 0.85rem;
+  color: #8a5a00;
+  font-style: italic;
+}
+
+.venue-date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.5rem 0;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.venue-date-row .venue-date-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.venue-date-row .venue-date-label input[type="date"] {
+  padding: 0.15rem 0.3rem;
+  font: inherit;
+}
+
+.venue-date-row .venue-date-hint {
+  color: #555;
+  font-size: 0.82rem;
+}
+
+.draw-room-td {
+  max-width: 14rem;
+  min-width: 8rem;
+  vertical-align: top;
+  overflow: visible;
+}
+
+.room-input-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.draw-room-td .bye-search-field {
+  min-width: 6rem;
+  max-width: 13rem;
+}
+
+.room-reuse-warn {
+  color: #a60;
+  font-weight: 700;
+  cursor: help;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+  margin-top: 0.35rem;
+}
+
+th,
+td {
+  border: 1px solid #999;
+  padding: 0.25rem 0.4rem;
+  text-align: left;
+}
+
+th {
+  background: #e8e8e0;
+}
+
+tr.row-off {
+  opacity: 0.45;
+}
+
+code {
+  font-size: 0.9em;
+  background: #eee;
+  padding: 0 0.2rem;
+}
+
+fieldset.step {
+  background: #fafaf8;
+}
+
+.roster-wrap {
+  overflow-x: auto;
+  margin: 0.5rem 0 1rem;
+}
+
+table.roster-table {
+  font-size: 0.88rem;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #999;
+}
+
+table.roster-table th,
+table.roster-table td {
+  border: 1px solid #ccc;
+  padding: 0.3rem 0.5rem;
+  text-align: left;
+}
+
+table.roster-table th {
+  background: #e8e8e0;
+}
+
+table.roster-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+table.roster-table th.sortable:hover {
+  background: #dddcd4;
+}
+
+table.roster-table th.sort-asc::after,
+table.roster-table th.sort-desc::after {
+  font-size: 0.72em;
+  margin-left: 0.3em;
+  opacity: 0.8;
+}
+
+table.roster-table th.sort-asc::after {
+  content: "▲";
+}
+
+table.roster-table th.sort-desc::after {
+  content: "▼";
+}
+
+table.roster-table tr.row-bye {
+  color: #666;
+  font-style: italic;
+}
+
+table.draw-table {
+  font-size: 0.85rem;
+  border-collapse: collapse;
+  margin: 0.35rem 0 0.75rem;
+  background: #fff;
+  border: 1px solid #bbb;
+  overflow: visible;
+}
+
+table.draw-table th,
+table.draw-table td {
+  border: 1px solid #ccc;
+  padding: 0.25rem 0.4rem;
+  vertical-align: middle;
+}
+
+table.draw-table th {
+  background: #e8e8e0;
+}
+
+table.draw-table select.draw-side-select {
+  max-width: min(14rem, 42vw);
+  font: inherit;
+}
+
+table.draw-table td.td-swap {
+  text-align: center;
+  width: 2.5rem;
+  padding: 0.15rem;
+}
+
+table.draw-table td.draw-side-td {
+  vertical-align: top;
+  min-width: 11rem;
+}
+
+table.draw-table td.draw-side-td.drop-target {
+  background: #eef7ff;
+  outline: 2px dashed #4f8fd5;
+  outline-offset: -2px;
+}
+
+table.draw-table .draw-team-chip {
+  display: inline-block;
+  border: 1px solid #7d8a96;
+  background: #f7f9fb;
+  color: #1f2a33;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  margin: 0 0 0.25rem 0;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: grab;
+}
+
+table.draw-table .draw-team-chip.is-bye {
+  background: #fff6d7;
+  border-color: #c5a757;
+}
+
+table.draw-table .draw-team-chip.dragging {
+  opacity: 0.55;
+}
+
+table.draw-table .draw-team-chip:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+table.draw-table .draw-team-meta {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  color: #444;
+  max-width: 16rem;
+}
+
+table.draw-table td.draw-note-td {
+  vertical-align: top;
+  max-width: 28rem;
+}
+
+table.draw-table tr.bracket-subhead td.bracket-subhead-cell {
+  font-size: 0.65rem;
+  line-height: 1.2;
+  padding: 0.12rem 0.4rem 0.2rem;
+  background: linear-gradient(to bottom, #e8eef5, #d8e0eb);
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 1px solid #9aabbc;
+  cursor: help;
+}
+
+table.draw-table .note-clean {
+  display: inline-block;
+  padding: 0.2rem 0.35rem;
+  border-radius: 3px;
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-size: 0.78rem;
+  cursor: help;
+}
+
+table.draw-table .clash-pill-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  align-items: center;
+}
+
+table.draw-table .clash-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.38rem;
+  border-radius: 4px;
+  cursor: help;
+  line-height: 1.3;
+  max-width: 100%;
+}
+
+table.draw-table .clash-kind-rematch {
+  background: #ffcdd2;
+  color: #b71c1c;
+  border: 1px solid #e57373;
+}
+
+table.draw-table .clash-kind-power {
+  background: #ffe0b2;
+  color: #bf360c;
+  border: 1px solid #ffb74d;
+}
+
+table.draw-table .clash-kind-inst {
+  background: #fff9c4;
+  color: #f57f17;
+  border: 1px solid #ffee58;
+}
+
+table.draw-table .clash-kind-side {
+  background: #e8eaf6;
+  color: #283593;
+  border: 1px solid #9fa8da;
+}
+
+table.draw-table tr.draw-row-rematch {
+  background: #fff5f5;
+}
+
+table.draw-table tr.draw-row-power {
+  background: #fffaf5;
+}
+
+table.draw-table tr.draw-row-same-inst {
+  background: #fffdf5;
+}
+
+table.draw-table tr.draw-row-rematch td {
+  border-color: #e8b4b4;
+}
+
+table.draw-table tr.draw-row-power td {
+  border-color: #e8d8c8;
+}
+
+button.btn-swap {
+  padding: 0.15rem 0.35rem;
+  line-height: 1.2;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+fieldset.bye-section .bye-block {
+  margin: 0.65rem 0;
+  padding: 0.35rem 0;
+  border-top: 1px solid #ddd;
+}
+
+fieldset.bye-section .bye-block:first-of-type {
+  border-top: none;
+}
+
+.bye-sub {
+  font-size: 0.95rem;
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.bye-summary {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+ul.bye-history-list {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.bye-autocomplete-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.bye-search-field {
+  position: relative;
+  flex: 1;
+  min-width: 12rem;
+  max-width: 24rem;
+  overflow: visible;
+}
+
+.bye-search-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.3rem 0.45rem;
+  font: inherit;
+}
+
+.ac-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 30;
+  max-height: 14rem;
+  overflow-y: auto;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #888;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.ac-suggestions li {
+  padding: 0.4rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.ac-suggestions li:hover,
+.ac-suggestions li.active {
+  background: #e0dfd6;
+}
+
+ul.bye-chip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+li.bye-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.35rem 0.2rem 0.5rem;
+  background: #e8e8e0;
+  border-radius: 4px;
+  font-size: 0.86rem;
+}
+
+button.bye-chip-remove {
+  padding: 0 0.25rem;
+  line-height: 1.2;
+  min-width: 1.35rem;
+}
