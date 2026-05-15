@@ -33,6 +33,7 @@ import {
   buildRematchSet,
   buildSideHistory,
   buildByeHistory,
+  buildByeRoundHistory,
   augmentByeHistoryWithAbsentFromLoadedRounds,
   groupPairingsByRoundSeq,
   computeLivePairingClashes,
@@ -1038,6 +1039,13 @@ async function onGenerate() {
     );
   }
   log(`Generated ${debates.length} debate(s).`);
+  const byeLogDebates = debates.filter((d) => d.kind === "bye" && d.byeAllocationLogLines?.length);
+  if (byeLogDebates.length) {
+    log("Bye allocation logic:");
+    for (const d of byeLogDebates) {
+      for (const line of d.byeAllocationLogLines) log(`  ${line}`);
+    }
+  }
   renderTable();
 }
 
@@ -1291,11 +1299,45 @@ function debateSideSelectCell(d, side, pickList) {
   return tdS;
 }
 
+function realTeamFromByeDebate(d) {
+  if (d.aff?.isPlaceholder) return d.neg || null;
+  if (d.neg?.isPlaceholder) return d.aff || null;
+  return null;
+}
+
+function previousByeRoundsForTeam(teamId) {
+  if (teamId == null) return [];
+  const roundsByTeam = buildByeRoundHistory(
+    pairingsByRoundForAbsentAugment(),
+    window.__teams || [],
+    state.byeTeamIds
+  );
+  return [...(roundsByTeam.get(teamId) || [])].sort((a, b) => a - b);
+}
+
+function manualByeHistoryPill(d) {
+  if (!d.manuallyEdited || d.kind !== "bye") return null;
+  const realTeam = realTeamFromByeDebate(d);
+  if (!realTeam || realTeam.isPlaceholder) return null;
+  const rounds = previousByeRoundsForTeam(realTeam.id);
+  const span = document.createElement("span");
+  span.className = "bye-history-pill";
+  span.textContent = `${rounds.length} prior bye${rounds.length === 1 ? "" : "s"}`;
+  span.title = rounds.length
+    ? `Previous bye rounds: ${rounds.map((r) => `R${r}`).join(", ")}`
+    : "No previous bye rounds found in loaded Tabbycat history.";
+  return span;
+}
+
 function drawNoteCell(d) {
   const td = document.createElement("td");
   td.className = "draw-note-td";
   if (d.kind !== "debate") {
-    td.textContent = d.note || "";
+    const text = document.createElement("div");
+    text.textContent = d.note || "";
+    td.appendChild(text);
+    const pill = manualByeHistoryPill(d);
+    if (pill) td.appendChild(pill);
     return td;
   }
   const clashes = d.pairingClashes || [];

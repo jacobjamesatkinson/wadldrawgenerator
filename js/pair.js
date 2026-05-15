@@ -209,16 +209,116 @@ export function pickSides(a, b, sideHist) {
   return { aff: chosen.aff, neg: chosen.neg, cost: chosen.cost, sideClash };
 }
 
-function pickByeTeam(candidates, byeHist, instKey) {
-  const noBye = candidates.filter((t) => !byeHist.teamHadBye.has(t.id));
-  const pool = noBye.length ? noBye : candidates.slice();
-  pool.sort((a, b) => speaksNum(a) - speaksNum(b) || a.id - b.id);
-  for (const t of pool) {
-    const ik = instKey(t);
-    if (ik && byeHist.instHadBye.has(ik)) continue;
-    return t;
+function weightedRandomByeTeamBySpeaks(candidates) {
+  if (candidates.length <= 1) {
+    const team = candidates[0] || null;
+    return {
+      team,
+      candidateCount: candidates.length,
+      bottomCutoff: team ? speaksNum(team) : 0,
+      weight: team ? 1 : 0,
+      totalWeight: team ? 1 : 0,
+      isBottomHalf: true,
+    };
   }
-  return pool[0];
+
+  const sorted = candidates.slice().sort((a, b) => speaksNum(a) - speaksNum(b));
+  const bottomCount = Math.ceil(sorted.length / 2);
+  const bottomCutoff = speaksNum(sorted[bottomCount - 1]);
+  const maxSpeaks = Math.max(...sorted.map(speaksNum));
+  const topRange = Math.max(0, maxSpeaks - bottomCutoff);
+  const weights = sorted.map((t) => {
+    const speaks = speaksNum(t);
+    if (speaks <= bottomCutoff || topRange === 0) return 1;
+
+    // Linear gradient: middle teams remain plausible, top speakers are least likely.
+    const topShare = (speaks - bottomCutoff) / topRange;
+    return 1 - 0.8 * topShare;
+  });
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < sorted.length; i++) {
+    r -= weights[i];
+    if (r <= 0) {
+      return {
+        team: sorted[i],
+        candidateCount: sorted.length,
+        bottomCutoff,
+        weight: weights[i],
+        totalWeight: total,
+        isBottomHalf: speaksNum(sorted[i]) <= bottomCutoff,
+      };
+    }
+  }
+  const last = sorted[sorted.length - 1];
+  return {
+    team: last,
+    candidateCount: sorted.length,
+    bottomCutoff,
+    weight: weights[weights.length - 1],
+    totalWeight: total,
+    isBottomHalf: speaksNum(last) <= bottomCutoff,
+  };
+}
+
+function formatSpeaksValue(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "?";
+  return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, "");
+}
+
+function formatPercent(n) {
+  return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : "?";
+}
+
+function byeAllocationNoteLines(pick, poolLabel) {
+  const t = pick.team;
+  const chance = pick.totalWeight > 0 ? pick.weight / pick.totalWeight : NaN;
+  const priorTeamLine = pick.usedPriorTeamFallback
+    ? "- Prior bye: repeat unavoidable"
+    : `- Prior bye: avoided (${pick.teamEligibleCount}/${pick.candidateCount} eligible)`;
+  const instLine = pick.usedInstitutionFallback
+    ? "- Institution bye: unavoidable"
+    : `- Institution bye: avoided (${pick.institutionEligibleCount}/${pick.teamEligibleCount} eligible)`;
+  const tier = pick.isBottomHalf ? "bottom 50%" : "reduced-weight higher speaks";
+  return [
+    `Bye: ${displayTeamLabel(t)} (${poolLabel})`,
+    priorTeamLine,
+    instLine,
+    `- Speaks: ${formatSpeaksValue(speaksNum(t))}; ${tier}; chance ~${formatPercent(chance)}`,
+    "- Team number/id: ignored",
+  ];
+}
+
+function pickByeTeam(candidates, byeHist, instKey) {
+  if (!candidates.length) return null;
+  const noBye = candidates.filter((t) => !byeHist.teamHadBye.has(t.id));
+  const teamEligible = noBye.length ? noBye : candidates.slice();
+  const instEligible = teamEligible.filter((t) => {
+    const ik = instKey(t);
+    return !ik || !byeHist.instHadBye.has(ik);
+  });
+  const pool = instEligible.length ? instEligible : teamEligible;
+  const weighted = weightedRandomByeTeamBySpeaks(pool);
+  return {
+    ...weighted,
+    candidateCount: candidates.length,
+    teamEligibleCount: teamEligible.length,
+    institutionEligibleCount: instEligible.length,
+    weightedCandidateCount: pool.length,
+    usedPriorTeamFallback: noBye.length === 0,
+    usedInstitutionFallback: instEligible.length === 0,
+  };
+}
+
+function forcedFloaterByeNoteLines(team, poolLabel) {
+  return [
+    `Bye: ${displayTeamLabel(team)} (${poolLabel})`,
+    "- Selection: forced leftover floater",
+    "- Prior bye: no alternative",
+    "- Institution bye: no alternative",
+    "- Team number/id: ignored",
+  ];
 }
 
 function pairsHaveRematch(pairs, rematch) {
@@ -620,6 +720,55 @@ export function buildByeHistory(pairingsList, byeTeamIds, teamById) {
   return { teamHadBye, instHadBye };
 }
 
+export function buildByeRoundHistory(pairingsByRound, importedTeams, byeTeamIds) {
+  const byTeam = new Map();
+  function mark(id, roundSeq) {
+    if (id == null || byeTeamIds.has(id) || roundSeq == null) return;
+    if (!byTeam.has(id)) byTeam.set(id, new Set());
+    byTeam.get(id).add(roundSeq);
+  }
+
+  if (!pairingsByRound || typeof pairingsByRound !== "object") return byTeam;
+  const rounds = Object.keys(pairingsByRound)
+    .map((k) => parseInt(k, 10))
+    .filter((r) => !Number.isNaN(r) && r >= 1)
+    .sort((a, b) => a - b);
+
+  for (const r of rounds) {
+    const pr = pairingsByRound[r];
+    if (!pr?.length) continue;
+
+    for (const debate of pr) {
+      const dts = debate.teams || [];
+      const hasByeSide = dts.some((dt) => isByeSideValue(dt.side));
+      const byePh = dts.some((dt) => {
+        const id = teamIdFromPairingDt(dt);
+        return id != null && byeTeamIds.has(id);
+      });
+      if (!hasByeSide && !byePh) continue;
+      for (const dt of dts) mark(teamIdFromPairingDt(dt), r);
+    }
+
+    for (const debate of pr) {
+      const realIds = new Set();
+      for (const dt of debate.teams || []) {
+        if (!pairingSlotCountsAsScheduled(dt, byeTeamIds)) continue;
+        realIds.add(teamIdFromPairingDt(dt));
+      }
+      if (realIds.size === 1) mark([...realIds][0], r);
+    }
+
+    const scheduled = collectScheduledTeamIdsInPairings(pr, byeTeamIds);
+    for (const t of importedTeams || []) {
+      const id = numericIdFromTeamApiRow(t);
+      if (id == null || byeTeamIds.has(id) || scheduled.has(id)) continue;
+      mark(id, r);
+    }
+  }
+
+  return byTeam;
+}
+
 function numericIdFromTeamApiRow(t) {
   if (!t) return null;
   if (t.id !== undefined && t.id !== null && `${t.id}`.trim() !== "") {
@@ -869,7 +1018,13 @@ export function generateDraw(ctx) {
         );
         continue;
       }
-      const byeTeam = pickByeTeam(pool, byeHist, instKey);
+      const byePick = pickByeTeam(pool, byeHist, instKey);
+      const byeTeam = byePick?.team;
+      if (!byeTeam) {
+        warnings.push(`Pool ${formatPoolLabel(venueLabel, ts)} has odd teams but no bye candidate was available`);
+        continue;
+      }
+      const byeNoteLines = byeAllocationNoteLines(byePick, poolLabel);
       pool = pool.filter((t) => t.id !== byeTeam.id);
       const affFirst =
         (sideHist.get(byeTeam.id)?.neg ?? 0) >= (sideHist.get(byeTeam.id)?.aff ?? 0);
@@ -882,7 +1037,8 @@ export function generateDraw(ctx) {
         timeslot: ts,
         aff: affFirst ? byeTeam : phTeam,
         neg: affFirst ? phTeam : byeTeam,
-        note: "bye",
+        note: byeNoteLines.join("\n"),
+        byeAllocationLogLines: byeNoteLines,
         bracketSectionId: "bye",
         bracketSectionLabel: "Bye (odd pool)",
         bracketSectionHover: "One team in this venue×timeslot had no opponent; paired with BYE placeholder.",
@@ -938,6 +1094,7 @@ export function generateDraw(ctx) {
       } else {
         warnings.push(`Odd floater in pool ${formatPoolLabel(venueLabel, ts)} — assigning bye`);
         const t = rest[0];
+        const byeNoteLines = forcedFloaterByeNoteLines(t, poolLabel);
         const affFirst = (sideHist.get(t.id)?.neg ?? 0) >= (sideHist.get(t.id)?.aff ?? 0);
         debates.push({
           kind: "bye",
@@ -948,7 +1105,8 @@ export function generateDraw(ctx) {
           timeslot: ts,
           aff: affFirst ? t : phTeam,
           neg: affFirst ? phTeam : t,
-          note: "bye (floater)",
+          note: byeNoteLines.join("\n"),
+          byeAllocationLogLines: byeNoteLines,
           bracketSectionId: "bye-floater",
           bracketSectionLabel: "Bye (leftover floater)",
           bracketSectionHover: "Single team remained after floater pairing; assigned bye.",
