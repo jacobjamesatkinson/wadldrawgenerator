@@ -40,6 +40,7 @@ import {
 } from "./pair.js";
 import { debatesToCsv, downloadText } from "./export.js";
 import { wadlScheduledDateYmd } from "./wadlVenueSchedule.js";
+import { parseTimeslotToHM, buildScheduledAt } from "./timeslot.js";
 
 const PROD = "https://draw.wadl.org";
 const STAGING = "https://wadlsdc26-staging-2f6d981ee2d9.herokuapp.com";
@@ -194,37 +195,6 @@ function involvesExcluded(d) {
   if (state.excludedTeamIds.has(d.aff.id)) return true;
   if (state.excludedTeamIds.has(d.neg.id)) return true;
   return false;
-}
-
-/**
- * Parse a CSV timeslot cell like "5.15", "5:15", "5.15pm", "17:15" into 24h {h, m}.
- * WADL rounds run 5.15pm / 6.15pm / 7.15pm, so hours 1–9 with no am/pm marker default to PM.
- */
-function parseTimeslotToHM(ts) {
-  const s = String(ts ?? "").trim().toLowerCase().replace(/\s+/g, "");
-  if (!s) return null;
-  const m = s.match(/^(\d{1,2})(?:[.:](\d{1,2}))?(am|pm)?$/);
-  if (!m) return null;
-  let h = parseInt(m[1], 10);
-  const mm = m[2] != null ? parseInt(m[2], 10) : 0;
-  const suf = m[3] || "";
-  if (!Number.isFinite(h) || !Number.isFinite(mm)) return null;
-  if (suf === "pm" && h < 12) h += 12;
-  else if (suf === "am" && h === 12) h = 0;
-  else if (!suf && h >= 1 && h <= 9) h += 12;
-  if (h < 0 || h > 23 || mm < 0 || mm > 59) return null;
-  return { h, m: mm };
-}
-
-/** ISO datetime (UTC Z) for venue date + debate timeslot, or null if either is missing/invalid. */
-function buildScheduledAt(dateStr, ts) {
-  if (!dateStr) return null;
-  const hm = parseTimeslotToHM(ts);
-  if (!hm) return null;
-  const d = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setHours(hm.h, hm.m, 0, 0);
-  return d.toISOString();
 }
 
 function scheduledAtForDebate(d) {

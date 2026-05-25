@@ -595,3 +595,207 @@ button.bye-chip-remove {
   line-height: 1.2;
   min-width: 1.35rem;
 }
+
+/* —— Staff draw sheet (schedule.html) —— */
+.schedule-nav {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.schedule-page h1 {
+  font-size: 1.25rem;
+}
+
+.schedule-sub {
+  font-size: 0.95rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.schedule-inconsistent-adj {
+  display: block;
+  margin: 0.5rem 0 0.35rem;
+  font-weight: 600;
+}
+
+.schedule-layout-hint {
+  font-size: 0.92rem;
+  padding: 0.5rem 0.65rem;
+  background: #e8eef5;
+  border: 1px solid #9aabbc;
+  border-radius: 3px;
+  margin: 0 0 0.75rem;
+}
+
+.schedule-room-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.schedule-room-editor {
+  overflow-x: auto;
+  max-height: 22rem;
+  margin: 0.5rem 0;
+}
+
+table.schedule-room-table {
+  font-size: 0.85rem;
+  width: auto;
+  min-width: 28rem;
+}
+
+table.schedule-room-table input[type="text"] {
+  width: 100%;
+  min-width: 6rem;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.schedule-room-actions {
+  white-space: nowrap;
+}
+
+.schedule-preview-wrap {
+  overflow-x: auto;
+  max-height: 24rem;
+}
+
+table.schedule-preview-table {
+  font-size: 0.85rem;
+}
+
+table.schedule-preview-table td.div-nov,
+table.schedule-preview-table td.div-jnr,
+table.schedule-preview-table td.div-snr {
+  color: #fff;
+  font-weight: 500;
+}
+
+table.schedule-preview-table td.div-nov {
+  background: #1b331a;
+}
+
+table.schedule-preview-table td.div-jnr {
+  background: #3d2b1f;
+}
+
+table.schedule-preview-table td.div-snr {
+  background: #3b2e58;
+}
+
+.schedule-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.schedule-bulk-details {
+  margin: 0.65rem 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ccc;
+  background: #fafaf8;
+  border-radius: 3px;
+}
+
+.schedule-bulk-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+table.schedule-allocation-table {
+  width: 100%;
+  min-width: 42rem;
+}
+
+table.schedule-allocation-table .schedule-room-input,
+table.schedule-allocation-table .schedule-adj-input {
+  width: 100%;
+  min-width: 5rem;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.2rem 0.35rem;
+}
+
+table.schedule-allocation-table td.schedule-slot-td {
+  font-size: 0.82rem;
+  vertical-align: top;
+  min-width: 7rem;
+}
+
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-draggable {
+  cursor: grab;
+}
+
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-draggable:active {
+  cursor: grabbing;
+}
+
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-dragging {
+  opacity: 0.55;
+}
+
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-drop-target {
+  outline: 2px dashed #4f8fd5;
+  outline-offset: -2px;
+  background: #eef7ff;
+}
+
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-pinned .schedule-slot-debate {
+  box-shadow: inset 0 0 0 2px #4f8fd5;
+}
+
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-draggable .schedule-slot-debate,
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-draggable .schedule-slot-tag,
+table.schedule-allocation-table td.schedule-slot-td.schedule-slot-draggable .schedule-vs {
+  pointer-events: none;
+}
+
+.schedule-slot-debate {
+  display: inline-block;
+  padding: 0.15rem 0.35rem;
+  border-radius: 2px;
+  line-height: 1.3;
+}
+
+.schedule-slot-debate.div-nov {
+  background: #1b331a;
+  color: #fff;
+}
+
+.schedule-slot-debate.div-jnr {
+  background: #3d2b1f;
+  color: #fff;
+}
+
+.schedule-slot-debate.div-snr {
+  background: #3b2e58;
+  color: #fff;
+}
+
+.schedule-slot-tag {
+  opacity: 0.85;
+  font-size: 0.75em;
+}
+
+.schedule-vs {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.schedule-row-num {
+  width: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+#bulkStatus {
+  min-height: 1.2em;
+}
+
+.schedule-overflow-warn {
+  color: #8a5a00;
+  font-weight: 500;
+  margin: 0 0 0.5rem;
+}

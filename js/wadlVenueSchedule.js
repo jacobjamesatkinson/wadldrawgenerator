@@ -80,3 +80,44 @@ export function wadlScheduledDateYmd(roundToPost, venueKey) {
   }
   return null;
 }
+
+/**
+ * Map Tabbycat room-name prefix (from {@link venuePrefixFromRoomName}) to a WADL site key
+ * used by {@link wadlScheduledDateYmd}. Extend as new site codes appear.
+ * @param {string} prefix
+ * @returns {string|null}
+ */
+export function scheduleVenueKeyFromRoomPrefix(prefix) {
+  const p = String(prefix || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  if (!p) return null;
+  if (p.startsWith("h2.")) return "shenton";
+  if (p.startsWith("bl") || p.startsWith("bu")) return "pmod";
+  if (p.startsWith("hale") || p === "h") return "hale";
+  if (p.startsWith("ccgs") || p.startsWith("christchurch")) return "christchurch";
+  if (p.startsWith("pc ") || p === "pc") return "perth college";
+  if (p.startsWith("leeming")) return "leeming";
+  if (p.startsWith("mt lawley") || p.startsWith("ml")) return "mt lawley";
+  if (p.startsWith("duncraig")) return "duncraig";
+  return null;
+}
+
+/**
+ * Default spreadsheet header title from room prefix when user has not overridden.
+ * @param {string} prefix
+ */
+export function defaultVenueTitleFromRoomPrefix(prefix) {
+  const k = scheduleVenueKeyFromRoomPrefix(prefix);
+  if (k === "shenton") return "Shenton College";
+  if (k === "pmod") return "Perth Modern";
+  if (k === "hale") return "Hale School";
+  if (k === "christchurch") return "Christ Church Grammar School";
+  if (k === "perth college") return "Perth College";
+  if (k === "leeming") return "Leeming Senior High School";
+  if (k === "mt lawley") return "Mount Lawley Senior High School";
+  if (k === "duncraig") return "Duncraig Senior High School";
+  const raw = String(prefix || "").trim();
+  return raw || "Venue";
+}

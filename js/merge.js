@@ -52,7 +52,7 @@ const FORBIDDEN_POINT_KEYS = new Set([
   "metric",
 ]);
 
-function isByeLikeTeamName(raw) {
+export function isByeLikeTeamName(raw) {
   const s = String(raw || "").trim().toLowerCase();
   if (!s) return false;
   if (s === "bye") return true;

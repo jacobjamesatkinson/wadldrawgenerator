@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WADL draw sheet (Tabbycat)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="schedule-page">
+    <p class="schedule-nav"><a href="index.html">← Tabbycat draw helper</a></p>
+    <h1>WADL staff draw sheet</h1>
+    <p class="warn">
+      Static tool: API token stays in your browser. Serve over HTTP (not <code>file://</code>). If requests fail, see
+      <a href="CORS.md">CORS.md</a>.
+    </p>
+
+    <fieldset>
+      <legend>Tabbycat server</legend>
+      <label><input type="radio" name="basePreset" value="prod" checked /> Production (draw.wadl.org)</label>
+      <label><input type="radio" name="basePreset" value="staging" /> Staging (Heroku)</label>
+      <label><input type="radio" name="basePreset" value="custom" /> Custom</label>
+      <input type="url" id="baseManual" placeholder="https://…" disabled />
+    </fieldset>
+
+    <fieldset>
+      <legend>Credentials</legend>
+      <label>API token <input type="password" id="token" autocomplete="off" size="40" /></label>
+      <p>
+        <button type="button" id="btnLoadMeta" class="primary-action">Load rounds &amp; divisions (Novice / Junior / Senior)</button>
+      </p>
+      <p id="loadMetaStatus" class="hint" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Round &amp; venue</legend>
+      <label>Round <select id="roundSelect" disabled><option value="">— load first —</option></select></label>
+      <label>Venue (room prefix) <select id="venuePrefixSelect" disabled><option value="">— load round —</option></select></label>
+      <p class="hint">
+        Venue options come from Tabbycat room names for the selected round (e.g. <code>H2.15</code> → prefix <code>H2.</code>). Tabbycat room
+        numbers are <strong>not</strong> used for row labels — add your own room list in the allocation table.
+      </p>
+      <p>
+        <button type="button" id="btnLoadRound" class="primary-action" disabled>Load pairings for this round</button>
+      </p>
+      <p id="loadRoundStatus" class="hint" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Header (sheet top)</legend>
+      <label>Venue title (override) <input type="text" id="venueTitle" size="50" placeholder="Auto from prefix" /></label>
+      <label>HA <input type="text" id="haField" size="30" placeholder="Head adjudicator" /></label>
+      <label>Adj room <input type="text" id="adjRoomField" size="20" placeholder="e.g. 2.23" /></label>
+      <label for="prepMonitors">Prep monitors (one per line)</label>
+      <textarea id="prepMonitors" rows="4" cols="70" placeholder="Prep Monitor: Name (4:15-5:15)"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Room allocations &amp; preview</legend>
+      <p class="hint">
+        Pairings with <strong>bye</strong>, <strong>withdrawn</strong>, <strong>retracted</strong> in a team name, or debate status
+        <strong>postponed</strong>, are omitted automatically. Debates fill each timeslot top-to-bottom in division order; edit
+        <strong>room</strong> labels and <strong>adjudicator</strong> in the table below.
+        <strong>Drag</strong> a debate cell onto another to <strong>swap</strong> them (or onto an empty cell to move). Swaps survive page reloads
+        until you change round/venue or click <strong>Reset manual swaps</strong>.
+      </p>
+      <label class="schedule-inconsistent-adj">
+        <input type="checkbox" id="inconsistentAdj" />
+        Inconsistent adj allocation
+      </label>
+      <p class="hint">
+        When checked, each timeslot gets its own adjudicator column in the preview and export. When unchecked, one adjudicator
+        applies to the whole room row.
+      </p>
+      <p id="layoutHint" class="schedule-layout-hint" aria-live="polite">Load a round and venue to preview.</p>
+      <p id="bulkStatus" class="hint" aria-live="polite"></p>
+      <div class="schedule-room-toolbar">
+        <button type="button" id="btnAddRoom" class="small">Add empty room row</button>
+        <button type="button" id="btnSortRooms" class="small">Sort rooms A→Z</button>
+        <button type="button" id="btnApplyAdjAll" class="small">Copy first adjudicator to all rows</button>
+        <button type="button" id="btnResetSwaps" class="small" disabled>Reset manual swaps</button>
+      </div>
+      <details class="schedule-bulk-details">
+        <summary>Bulk add rooms</summary>
+        <p class="hint">
+          Paste room codes, then click <strong>Add rooms from list</strong>. One per line or comma-separated.
+          Range on one line: <code>H2.15-H2.35</code>. Keeps rooms already in the table; skips duplicates.
+        </p>
+        <textarea id="bulkRooms" rows="5" cols="60" placeholder="H2.15&#10;H2.16&#10;or: H2.15-H2.35"></textarea>
+        <p><button type="button" id="btnBulkRooms" class="small">Add rooms from list</button></p>
+      </details>
+      <details class="schedule-bulk-details">
+        <summary>Bulk assign adjudicators (CSV)</summary>
+        <p class="hint">
+          Paste CSV with <code>room,adjudicator</code> (header row optional). Rooms must match the table. Example:
+          <code>H2.15,Eugene</code>
+        </p>
+        <textarea id="bulkAdjs" rows="5" cols="60" placeholder="room,adjudicator&#10;H2.15,Eugene&#10;H2.16,Elliott"></textarea>
+        <p><button type="button" id="btnBulkAdjs" class="small">Apply adjudicators from CSV</button></p>
+      </details>
+      <details class="schedule-bulk-details">
+        <summary>Autofill numbered series</summary>
+        <p class="hint"><strong>Replaces</strong> the whole room list (clears adjudicator names).</p>
+        <label>Start room <input type="text" id="autoStart" size="12" placeholder="H2.15" /></label>
+        <label>How many rooms <input type="number" id="autoCount" min="1" max="99" value="21" /></label>
+        <button type="button" id="btnAutofill" class="small">Replace list with series</button>
+      </details>
+      <div id="previewWrap" class="schedule-preview-wrap"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Export</legend>
+      <p class="schedule-export-actions">
+        <button type="button" id="btnXlsx" class="primary-action" disabled>Download .xlsx</button>
+        <button type="button" id="btnShare" disabled>Share .xlsx</button>
+        <button type="button" id="btnCsv" disabled>Download .csv</button>
+      </p>
+      <p id="exportHint" class="hint" aria-live="polite"></p>
+    </fieldset>
+
+    <h2>Log</h2>
+    <p><button type="button" id="btnClearLog" class="small">Clear log</button></p>
+    <div id="log" class="box log"></div>
+
+    <script type="module" src="js/scheduleApp.js"></script>
+  </body>
+</html>

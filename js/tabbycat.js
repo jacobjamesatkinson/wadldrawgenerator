@@ -159,6 +159,14 @@ export async function listInstitutions(baseUrl, token, slug) {
   return fetchAllPages(baseUrl, token, tournamentPath(slug, "/institutions"));
 }
 
+export async function listRounds(baseUrl, token, slug) {
+  return fetchAllPages(baseUrl, token, tournamentPath(slug, "/rounds"));
+}
+
+export async function listAdjudicators(baseUrl, token, slug) {
+  return fetchAllPages(baseUrl, token, tournamentPath(slug, "/adjudicators"));
+}
+
 export async function listPairingsForRound(baseUrl, token, slug, roundSeq) {
   return fetchAllPages(
     baseUrl,
