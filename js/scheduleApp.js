@@ -18,6 +18,7 @@ import {
   buildCellMatrix,
   parseBulkRooms,
   autofillRoomSeries,
+  requiredRoomRowCount,
   mergeRoomListWithStats,
   applyBulkAdjudicatorsCsv,
   debateKey,
@@ -567,6 +568,25 @@ function updateExportButtons() {
   el("btnShare").disabled = !can || !navigator.share;
 }
 
+function updateAutofillRoomHint() {
+  const hint = el("autofillRoomHint");
+  if (!hint) return;
+  const n = requiredRoomRowCount(filteredDebates);
+  if (!getVenuePrefix() || !filteredDebates.length) {
+    hint.textContent = "Load round and venue to see how many room rows autofill will create.";
+    return;
+  }
+  if (!n) {
+    hint.textContent = "No debates in standard timeslots (5.15 / 6.15 / 7.15) for this venue.";
+    return;
+  }
+  const parts = STANDARD_TIMESLOTS.map((slot) => {
+    const c = filteredDebates.filter((d) => d.timeslot === slot).length;
+    return `${slot}: ${c}`;
+  });
+  hint.textContent = `Autofill will create ${n} room row(s) (busiest timeslot). ${parts.join(" · ")}.`;
+}
+
 function refreshDerived(opts = {}) {
   const { matrix, overflow } = buildMatrixBundle();
   if (opts.prefillAdj !== false) prefillAdjudicators(matrix);
@@ -574,6 +594,7 @@ function refreshDerived(opts = {}) {
   saveUiState();
   updateExportButtons();
   updateManualSwapUi();
+  updateAutofillRoomHint();
 }
 
 function wireBasePresets() {
@@ -769,15 +790,21 @@ function onBulkRooms() {
 
 function onAutofill() {
   const start = el("autoStart").value.trim();
-  const n = parseInt(el("autoCount").value, 10);
   if (!start) {
     log("Enter a start room for autofill.", true);
+    return;
+  }
+  const n = requiredRoomRowCount(filteredDebates);
+  if (!n) {
+    el("bulkStatus").textContent = "No debates for this venue — load the round and pick a venue first.";
+    log("Autofill needs loaded pairings for the selected venue.", true);
     return;
   }
   roomOrder = autofillRoomSeries(start, n);
   adjByRoom = {};
   adjByRoomSlot = {};
-  el("bulkStatus").textContent = `Replaced list with ${roomOrder.length} room(s) from ${start}.`;
+  manualPlacements = new Map();
+  el("bulkStatus").textContent = `Replaced list with ${roomOrder.length} room(s) (${n} needed for busiest timeslot) from ${start}.`;
   log(`Autofill: ${roomOrder.length} rooms (${roomOrder[0]} … ${roomOrder[roomOrder.length - 1]}).`);
   refreshDerived();
 }

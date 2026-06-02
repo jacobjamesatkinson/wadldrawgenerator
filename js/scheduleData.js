@@ -416,6 +416,20 @@ export function mergeRoomListWithStats(incoming, current) {
 }
 
 /**
+ * Room rows needed = debates in the busiest standard timeslot (5.15 / 6.15 / 7.15).
+ * @param {object[]} debates - venue-filtered debates with timeslot labels
+ * @returns {number}
+ */
+export function requiredRoomRowCount(debates) {
+  let max = 0;
+  for (const slot of STANDARD_TIMESLOTS) {
+    const n = (debates || []).filter((d) => d.timeslot === slot).length;
+    if (n > max) max = n;
+  }
+  return max;
+}
+
+/**
  * Autofill sequential rooms: start "H2.15", count 21 → H2.15 … H2.35
  * @param {string} startRoom
  * @param {number} count

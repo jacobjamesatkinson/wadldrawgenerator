@@ -7,7 +7,11 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="schedule-page">
-    <p class="schedule-nav"><a href="index.html">← Tabbycat draw helper</a></p>
+    <p class="schedule-nav">
+      <a href="index.html">← Tabbycat draw helper</a>
+      ·
+      <a href="topic-slips.html">Topic slip generator →</a>
+    </p>
     <h1>WADL staff draw sheet</h1>
     <p class="warn">
       Static tool: API token stays in your browser. Serve over HTTP (not <code>file://</code>). If requests fail, see
@@ -99,10 +103,13 @@
       </details>
       <details class="schedule-bulk-details">
         <summary>Autofill numbered series</summary>
-        <p class="hint"><strong>Replaces</strong> the whole room list (clears adjudicator names).</p>
+        <p class="hint">
+          <strong>Replaces</strong> the whole room list (clears adjudicator names). Row count is set automatically from the
+          busiest timeslot for this venue (after you load the round).
+        </p>
         <label>Start room <input type="text" id="autoStart" size="12" placeholder="H2.15" /></label>
-        <label>How many rooms <input type="number" id="autoCount" min="1" max="99" value="21" /></label>
         <button type="button" id="btnAutofill" class="small">Replace list with series</button>
+        <p id="autofillRoomHint" class="hint" aria-live="polite"></p>
       </details>
       <div id="previewWrap" class="schedule-preview-wrap"></div>
     </fieldset>

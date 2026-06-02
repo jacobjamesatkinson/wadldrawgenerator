@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WADL topic slips</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="schedule-page topic-slips-page">
+    <p class="schedule-nav">
+      <a href="index.html">← Tabbycat draw helper</a>
+      ·
+      <a href="schedule.html">Staff draw sheet</a>
+    </p>
+    <h1>WADL topic slip generator</h1>
+    <p class="warn">
+      Static tool: API token stays in your browser. Serve over HTTP (not <code>file://</code>). If requests fail, see
+      <a href="CORS.md">CORS.md</a>.
+    </p>
+
+    <fieldset>
+      <legend>Tabbycat server</legend>
+      <label><input type="radio" name="basePreset" value="prod" checked /> Production (draw.wadl.org)</label>
+      <label><input type="radio" name="basePreset" value="staging" /> Staging (Heroku)</label>
+      <label><input type="radio" name="basePreset" value="custom" /> Custom</label>
+      <input type="url" id="baseManual" placeholder="https://…" disabled />
+    </fieldset>
+
+    <fieldset>
+      <legend>Credentials</legend>
+      <label>API token <input type="password" id="token" autocomplete="off" size="40" /></label>
+      <p>
+        <button type="button" id="btnLoadMeta" class="primary-action">Load rounds &amp; divisions (Novice / Junior / Senior)</button>
+      </p>
+      <p id="loadMetaStatus" class="hint" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Round &amp; venue</legend>
+      <label>Round <select id="roundSelect" disabled><option value="">— load first —</option></select></label>
+      <label>Venue (room prefix) <select id="venuePrefixSelect" disabled><option value="">— load round —</option></select></label>
+      <p class="hint">
+        Loads pairings for <strong>all three divisions</strong> at once, then filters to debates in this venue (Tabbycat room prefix).
+      </p>
+      <p>
+        <button type="button" id="btnLoadRound" class="primary-action" disabled>Load pairings for this round</button>
+      </p>
+      <p id="loadRoundStatus" class="hint" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset class="topic-slip-division-block">
+      <legend>Topic &amp; info slide (per division)</legend>
+      <p class="hint">
+        Each division has its own motion and info slide text on every slip for debates in that division (Novice / Junior / Senior).
+      </p>
+      <div class="topic-slip-division-grid">
+        <section class="topic-slip-div topic-slip-div-nov">
+          <h3>Novice</h3>
+          <label>Topic <textarea id="topic_novice" rows="4" cols="50" placeholder="Motion text for Novice"></textarea></label>
+          <label>Info slide <textarea id="info_novice" rows="4" cols="50" placeholder="Info slide text for Novice"></textarea></label>
+        </section>
+        <section class="topic-slip-div topic-slip-div-jnr">
+          <h3>Junior</h3>
+          <label>Topic <textarea id="topic_junior" rows="4" cols="50" placeholder="Motion text for Junior"></textarea></label>
+          <label>Info slide <textarea id="info_junior" rows="4" cols="50" placeholder="Info slide text for Junior"></textarea></label>
+        </section>
+        <section class="topic-slip-div topic-slip-div-snr">
+          <h3>Senior</h3>
+          <label>Topic <textarea id="topic_senior" rows="4" cols="50" placeholder="Motion text for Senior"></textarea></label>
+          <label>Info slide <textarea id="info_senior" rows="4" cols="50" placeholder="Info slide text for Senior"></textarea></label>
+        </section>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Rooms (debate &amp; prep)</legend>
+      <p class="hint">
+        <strong>One room list</strong> for the venue. Rows are debate rooms per timeslot; prep rooms are assigned automatically from the same list.
+        Prep starts <strong>one hour before</strong> each debate timeslot — so during 5.15 debates, rooms hosting those debates cannot be used for
+        6.15 prep (e.g. a Novice debate in Room1 blocks Junior prep there). At <strong>5.15 only</strong>, Affirmative teams may prep in their
+        debate room; at 6.15 and 7.15, and all Negative teams, prep uses a separate room from the list.
+      </p>
+      <p id="layoutHint" class="schedule-layout-hint" aria-live="polite">Load metadata → round → venue, then import rooms.</p>
+      <p id="bulkStatus" class="hint" aria-live="polite"></p>
+      <div class="schedule-room-toolbar">
+        <button type="button" id="btnAddRoom" class="small">Add empty room row</button>
+        <button type="button" id="btnSortRooms" class="small">Sort rooms A→Z</button>
+        <button type="button" id="btnResetSwaps" class="small" disabled>Reset manual swaps</button>
+        <button type="button" id="btnReassignPrep" class="small">Re-assign prep rooms</button>
+      </div>
+      <details class="schedule-bulk-details" open>
+        <summary>Import rooms (bulk)</summary>
+        <p class="hint">
+          Paste room codes for this venue — used for <strong>debate allocation rows</strong> and as the pool for <strong>prep rooms</strong>.
+          One per line, comma-separated, or range <code>H2.15-H2.35</code>. Click <strong>Add rooms from list</strong> to merge, or
+          <strong>Replace with autofill series</strong> to generate enough rooms for debates + prep (count is automatic).
+        </p>
+        <textarea id="bulkRooms" rows="6" cols="60" placeholder="H2.15&#10;H2.16&#10;or: H2.15-H2.35"></textarea>
+        <p>
+          <button type="button" id="btnBulkRooms" class="small">Add rooms from list</button>
+        </p>
+      </details>
+      <details class="schedule-bulk-details">
+        <summary>Autofill numbered series (replaces list)</summary>
+        <p class="hint">
+          Replaces the whole room list and clears manual debate swaps. Room count is computed from your draw (debate rows + prep capacity).
+        </p>
+        <label>Start room <input type="text" id="autoStart" size="12" placeholder="H2.15" /></label>
+        <button type="button" id="btnAutofill" class="small">Replace list with series</button>
+        <p id="autofillRoomHint" class="hint" aria-live="polite"></p>
+      </details>
+      <div id="previewWrap" class="schedule-preview-wrap"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Export</legend>
+      <p class="hint">
+        <strong>Word</strong> uses the standard 3-column slip table (TOPIC · logo/division · team details) and stacks debates down each
+        page; a debate's table never splits across two pages. <strong>PDF</strong> uses one page per debate (AFF top half, NEG bottom).
+      </p>
+      <p class="schedule-export-actions">
+        <button type="button" id="btnDocx" class="primary-action" disabled>Download .docx</button>
+        <button type="button" id="btnPdf" class="primary-action" disabled>Download .pdf</button>
+      </p>
+      <p id="exportHint" class="hint" aria-live="polite"></p>
+    </fieldset>
+
+    <h2>Log</h2>
+    <p><button type="button" id="btnClearLog" class="small">Clear log</button></p>
+    <div id="log" class="box log"></div>
+
+    <script type="module" src="js/topicSlipApp.js"></script>
+  </body>
+</html>

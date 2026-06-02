@@ -799,3 +799,122 @@ table.schedule-allocation-table td.schedule-slot-td.schedule-slot-draggable .sch
   font-weight: 500;
   margin: 0 0 0.5rem;
 }
+
+/* —— Topic slips (topic-slips.html) —— */
+.topic-slip-division-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.topic-slip-div {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fafaf8;
+}
+
+.topic-slip-div h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.topic-slip-div-nov {
+  border-left: 4px solid #1b5e20;
+}
+
+.topic-slip-div-jnr {
+  border-left: 4px solid #5d4037;
+}
+
+.topic-slip-div-snr {
+  border-left: 4px solid #4527a0;
+}
+
+.topic-slip-div label {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 0.88rem;
+}
+
+.topic-slip-div textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0.2rem;
+  font: inherit;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.topic-slip-summary {
+  margin-top: 0.75rem;
+  font-weight: 500;
+}
+
+.topic-prep-overwrite {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 0.88rem;
+}
+
+table.topic-allocation-table th.topic-slot-head {
+  text-align: center;
+  background: #e0e8f0;
+}
+
+table.topic-allocation-table th.topic-prep-head {
+  font-size: 0.78rem;
+  background: #f3f0e8;
+}
+
+table.topic-allocation-table th.topic-debate-head {
+  font-size: 0.78rem;
+}
+
+table.topic-allocation-table td.schedule-prep-td {
+  min-width: 6.5rem;
+  max-width: 9rem;
+  vertical-align: top;
+  font-size: 0.78rem;
+  background: #faf8f4;
+}
+
+.topic-prep-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.topic-prep-row {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.topic-prep-side {
+  flex: 0 0 1.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #555;
+}
+
+input.topic-prep-slot-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.25rem;
+}
+
+input.topic-prep-slot-input.topic-prep-missing {
+  background: #fff3e0;
+  border-color: #c5a757;
+}
+
+.topic-prep-empty {
+  color: #999;
+}
